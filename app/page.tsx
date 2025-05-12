@@ -2,6 +2,8 @@ import BgGradient from "@/components/common/BgGradient";
 import HowItWorksSection from "@/components/common/HowItWorksSection";
 import DemoSection from "@/components/home/DemoSection";
 import HeroSection from "@/components/home/HeroSection";
+import PricingSection from "@/components/home/PricingSection";
+
 export default function Home() {
   return (
     <div className="relative w-full">
@@ -10,6 +12,7 @@ export default function Home() {
         <HeroSection />
         <DemoSection />
         <HowItWorksSection />
+        <PricingSection />
       </div>
 
       {/* CTA Section */}
