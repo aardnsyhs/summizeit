@@ -4,6 +4,7 @@ import { z } from "zod";
 import UploadFormInput from "./UploadFormInput";
 import { useUploadThing } from "@/utils/uploadthing";
 import { toast } from "sonner";
+import { generatePdfSummary } from "@/actions/upload-actions";
 
 const schema = z.object({
   file: z
@@ -88,6 +89,9 @@ export default function UploadForm() {
         </p>
       </div>
     );
+
+    const summary = await generatePdfSummary(res);
+    console.log({ summary });
   };
 
   return (
