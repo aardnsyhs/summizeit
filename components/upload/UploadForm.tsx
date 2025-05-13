@@ -5,6 +5,7 @@ import UploadFormInput from "./UploadFormInput";
 import { useUploadThing } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import { generatePdfSummary } from "@/actions/upload-actions";
+import { useRef, useState } from "react";
 
 const schema = z.object({
   file: z
@@ -20,6 +21,9 @@ const schema = z.object({
 });
 
 export default function UploadForm() {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const { startUpload, routeConfig } = useUploadThing("pdfUploader", {
     onClientUploadComplete: () => {
       console.log("uploaded successfully!");
@@ -40,63 +44,93 @@ export default function UploadForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const file = formData.get("file") as File;
-    const validatedFields = schema.safeParse({ file });
 
-    console.log(validatedFields);
+    try {
+      setIsLoading(true);
+      const formData = new FormData(e.currentTarget);
+      const file = formData.get("file") as File;
+      const validatedFields = schema.safeParse({ file });
 
-    if (!validatedFields.success) {
-      toast.error(
+      console.log(validatedFields);
+
+      if (!validatedFields.success) {
+        toast.error(
+          <div>
+            <p className="font-semibold">❌ Something went wrong</p>
+            <p className="text-sm text-muted-foreground">
+              {validatedFields.error.flatten().fieldErrors.file?.[0] ??
+                "Invalid file"}
+            </p>
+          </div>
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      toast(
         <div>
-          <p className="font-semibold">❌ Something went wrong</p>
+          <p className="font-semibold">📄 Uploading PDF...</p>
           <p className="text-sm text-muted-foreground">
-            {validatedFields.error.flatten().fieldErrors.file?.[0] ??
-              "Invalid file"}
+            We are uploading your PDF!
           </p>
         </div>
       );
-      return;
-    }
 
-    toast(
-      <div>
-        <p className="font-semibold">📄 Uploading PDF...</p>
-        <p className="text-sm text-muted-foreground">
-          We are uploading your PDF!
-        </p>
-      </div>
-    );
+      const res = await startUpload([file]);
+      if (!res) {
+        toast.error(
+          <div>
+            <p className="font-semibold">❌ Something went wrong</p>
+            <p className="text-sm text-muted-foreground">
+              Please use a different file
+            </p>
+          </div>
+        );
+        setIsLoading(false);
+        return;
+      }
 
-    const res = await startUpload([file]);
-    if (!res) {
-      toast.error(
+      toast(
         <div>
-          <p className="font-semibold">❌ Something went wrong</p>
+          <p className="font-semibold">📄 Processing PDF</p>
           <p className="text-sm text-muted-foreground">
-            Please use a different file
+            Hang tight! Our AI is reading through your document!
           </p>
         </div>
       );
-      return;
+
+      const result = await generatePdfSummary(res);
+
+      const { data = null, message = null } = result || {};
+
+      if (data) {
+        toast(
+          <div>
+            <p className="font-semibold">📄 Saving PDF...</p>
+            <p className="text-sm text-muted-foreground">
+              Hang tight! We are saving your summary!
+            </p>
+          </div>
+        );
+        formRef.current?.reset();
+        if (data.summary) {
+          // save the summary to the database
+        }
+      }
+    } catch (err) {
+      setIsLoading(false);
+      console.error("Error occured", err);
+      formRef.current?.reset();
     }
-
-    toast(
-      <div>
-        <p className="font-semibold">📄 Processing PDF</p>
-        <p className="text-sm text-muted-foreground">
-          Hang tight! Our AI is reading through your document!
-        </p>
-      </div>
-    );
-
-    const summary = await generatePdfSummary(res);
-    console.log({ summary });
   };
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">
-      <UploadFormInput onSubmit={handleSubmit} />
+      <UploadFormInput
+        isLoading={isLoading}
+        ref={formRef}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }
