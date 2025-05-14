@@ -4,8 +4,12 @@ import { z } from "zod";
 import UploadFormInput from "./UploadFormInput";
 import { useUploadThing } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { generatePdfSummary } from "@/actions/upload-actions";
+import {
+  generatePdfSummary,
+  storePdfSummaryAction,
+} from "@/actions/upload-actions";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
   file: z
@@ -23,6 +27,7 @@ const schema = z.object({
 export default function UploadForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const { startUpload } = useUploadThing("pdfUploader", {
     onClientUploadComplete: () => {
@@ -38,8 +43,8 @@ export default function UploadForm() {
       );
       setIsLoading(false);
     },
-    onUploadBegin: ({ file }) => {
-      console.log("upload has begun for", file);
+    onUploadBegin: (fileName: string) => {
+      console.log("upload has begun for", fileName);
     },
   });
 
@@ -102,21 +107,44 @@ export default function UploadForm() {
       const { data = null } = result || {};
 
       if (data) {
+        let storeResult: any;
         toast(
           <div>
-            <p className="font-semibold">✅ Summary saved</p>
+            <p className="font-semibold">✅ Saving PDF...</p>
             <p className="text-sm text-muted-foreground">
-              Your PDF summary has been successfully saved!
+              Hang tight! We are saving your summary! ✨
             </p>
           </div>
         );
-        formRef.current?.reset();
+        if (data.summary) {
+          storeResult = await storePdfSummaryAction({
+            summary: Array.isArray(data.summary)
+              ? data.summary.join(" ")
+              : String(data.summary),
+            fileUrl: res[0].ufsUrl,
+            title: data.title,
+            fileName: file.name,
+          });
+          toast.success(
+            <div>
+              <p className="font-semibold">✨ Summary generated!</p>
+              <p className="text-sm text-muted-foreground">
+                Your PDF summary has been successfully summarized and saved!
+              </p>
+            </div>
+          );
+
+          formRef.current?.reset();
+          router.push(`/summaries/${storeResult.data.id}`);
+        }
       } else {
         toast.error("❌ Failed to save PDF summary.");
+        formRef.current?.reset();
       }
     } catch (err) {
       console.error("Error occurred", err);
       toast.error("Unexpected error occurred during upload.");
+      formRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
