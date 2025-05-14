@@ -2,6 +2,7 @@
 
 import { fetchAndExtractPdfText } from "@/lib/langchain";
 import { generateSummaryFromGroq } from "@/lib/groq";
+import { generateSummaryFromGemini } from "@/lib/gemini";
 
 export async function generatePdfSummary(
   uploadResponse: [
@@ -48,6 +49,20 @@ export async function generatePdfSummary(
       console.log({ summary });
     } catch (err) {
       console.error(err);
+      //call gemini
+      if (err instanceof Error && err.message === "RATE_LIMIT_EXCEEDED") {
+        try {
+          summary = await generateSummaryFromGemini(pdfText);
+        } catch (geminiErr) {
+          console.error(
+            "Gemini API failed after Groq quote exceeded",
+            geminiErr
+          );
+          throw new Error(
+            "Failed to generate summary with available AI providers"
+          );
+        }
+      }
     }
 
     if (!summary) {

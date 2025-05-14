@@ -24,7 +24,7 @@ export default function UploadForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { startUpload, routeConfig } = useUploadThing("pdfUploader", {
+  const { startUpload } = useUploadThing("pdfUploader", {
     onClientUploadComplete: () => {
       console.log("uploaded successfully!");
     },
@@ -32,10 +32,11 @@ export default function UploadForm() {
       console.error("error occurred while uploading", err);
       toast.error(
         <div>
-          <p className="font-bold">Error occured while uploading</p>
+          <p className="font-bold">Error occurred while uploading</p>
           <p className="text-sm text-muted-foreground">{err.message}</p>
         </div>
       );
+      setIsLoading(false);
     },
     onUploadBegin: ({ file }) => {
       console.log("upload has begun for", file);
@@ -44,14 +45,12 @@ export default function UploadForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      setIsLoading(true);
       const formData = new FormData(e.currentTarget);
       const file = formData.get("file") as File;
       const validatedFields = schema.safeParse({ file });
-
-      console.log(validatedFields);
 
       if (!validatedFields.success) {
         toast.error(
@@ -100,27 +99,26 @@ export default function UploadForm() {
       );
 
       const result = await generatePdfSummary(res);
-
-      const { data = null, message = null } = result || {};
+      const { data = null } = result || {};
 
       if (data) {
         toast(
           <div>
-            <p className="font-semibold">📄 Saving PDF...</p>
+            <p className="font-semibold">✅ Summary saved</p>
             <p className="text-sm text-muted-foreground">
-              Hang tight! We are saving your summary!
+              Your PDF summary has been successfully saved!
             </p>
           </div>
         );
         formRef.current?.reset();
-        if (data.summary) {
-          // save the summary to the database
-        }
+      } else {
+        toast.error("❌ Failed to save PDF summary.");
       }
     } catch (err) {
+      console.error("Error occurred", err);
+      toast.error("Unexpected error occurred during upload.");
+    } finally {
       setIsLoading(false);
-      console.error("Error occured", err);
-      formRef.current?.reset();
     }
   };
 
