@@ -11,7 +11,7 @@
 - **AI Integration**: Analyze documents using Gemini and Groq APIs.
 - **Subscription-based Payments**: Fully integrated with Stripe for billing.
 - **Dashboard & Document History**: Manage and revisit previous summaries.
-- **Public Tunneling Support**: Access local development via Ngrok or LocalTunnel.
+- **Public Tunneling Support**: Access local development via LocalTunnel.
 
 ---
 
@@ -72,7 +72,7 @@ STRIPE_WEBHOOK_SECRET=
 npm run dev
 ```
 
-Akses di: [http://localhost:3000](http://localhost:3000)
+Visit: [http://localhost:3000](http://localhost:3000)
 
 ---
 
