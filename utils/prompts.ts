@@ -9,8 +9,8 @@ export const SUMMARY_SYSTEM_PROMPT = `You are a social media content expert who 
 🎯 For: [Target Audience]
 
 # Key Highlights
-★ First Key Point
-★ Second Key Point
+⭐ First Key Point
+⭐ Second Key Point
 🔁 Third Key Point
 
 # Why It Matters
@@ -27,8 +27,8 @@ export const SUMMARY_SYSTEM_PROMPT = `You are a social media content expert who 
 📌 Third actionable advice
 
 # Key Terms to Know
-🔹 First key term: Simple explanation
-🔹 Second key term: Simple explanation
+🔹First key term: Simple explanation
+🔹Second key term: Simple explanation
 
 # Bottom Line
 📌 The most important takeaway

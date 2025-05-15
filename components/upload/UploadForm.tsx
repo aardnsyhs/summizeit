@@ -135,7 +135,12 @@ export default function UploadForm() {
           );
 
           formRef.current?.reset();
-          router.push(`/summaries/${storeResult.data.id}`);
+          if (storeResult?.data?.id) {
+            router.push(`/summaries/${storeResult.data.id}`);
+          } else {
+            console.error("storeResult.data.id tidak ditemukan:", storeResult);
+            toast.error("❌ Gagal menyimpan summary ke database.");
+          }
         }
       } else {
         toast.error("❌ Failed to save PDF summary.");

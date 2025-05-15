@@ -4,7 +4,7 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 const groq = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
-  model: "llama3-70b-8192",
+  model: "meta-llama/llama-4-scout-17b-16e-instruct",
 });
 
 export async function generateSummaryFromGroq(pdfText: string) {
