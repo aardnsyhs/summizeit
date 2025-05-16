@@ -5,6 +5,7 @@ import { generateSummaryFromGroq } from "@/lib/groq";
 import { generateSummaryFromGemini } from "@/lib/gemini";
 import { auth } from "@clerk/nextjs/server";
 import { getDbConnection } from "@/lib/db";
+import { formatFileNameAsTitle } from "@/utils/format-utils";
 import { revalidatePath } from "next/cache";
 
 interface PdfSummaryType {
@@ -15,8 +16,20 @@ interface PdfSummaryType {
   fileName: string;
 }
 
-export async function generatePdfText({ fileUrl }: { fileUrl: string }) {
-  if (!fileUrl) {
+export async function generatePdfSummary(
+  uploadResponse: [
+    {
+      serverData: {
+        userId: string;
+        file: {
+          url: string;
+          name: string;
+        };
+      };
+    }
+  ]
+) {
+  if (!uploadResponse) {
     return {
       success: false,
       message: "File upload failed",
@@ -24,43 +37,25 @@ export async function generatePdfText({ fileUrl }: { fileUrl: string }) {
     };
   }
 
-  try {
-    const pdfText = await fetchAndExtractPdfText(fileUrl);
-    console.log(pdfText);
+  const {
+    serverData: {
+      userId,
+      file: { url: pdfUrl, name: fileName },
+    },
+  } = uploadResponse[0];
 
-    if (!pdfText) {
-      return {
-        success: false,
-        message: "Failed to fetch and extract PDF text",
-        data: null,
-      };
-    }
-
-    return {
-      success: true,
-      message: "PDF text generated successfully",
-      data: {
-        pdfText,
-      },
-    };
-  } catch (err) {
+  if (!pdfUrl) {
     return {
       success: false,
-      message: "File to fetch and extract PDF text",
+      message: "File upload failed",
       data: null,
     };
   }
-}
 
-export async function generatePdfSummary({
-  pdfText,
-  fileName,
-}: {
-  pdfText: string;
-  fileName: string;
-}) {
+  let summary;
   try {
-    let summary;
+    const pdfText = await fetchAndExtractPdfText(pdfUrl);
+    console.log(pdfText);
     try {
       summary = await generateSummaryFromGroq(pdfText);
       console.log({ summary });
@@ -80,11 +75,6 @@ export async function generatePdfSummary({
           );
         }
       }
-      return {
-        success: false,
-        message: "Failed to generate summary",
-        data: null,
-      };
     }
 
     if (!summary) {
@@ -95,18 +85,20 @@ export async function generatePdfSummary({
       };
     }
 
+    const formattedFileName = formatFileNameAsTitle(fileName);
+
     return {
       success: true,
       message: "Summary generated successfully",
       data: {
-        title: fileName,
+        title: formattedFileName,
         summary,
       },
     };
   } catch (err) {
     return {
       success: false,
-      message: "Failed to generate summary",
+      message: "File upload failed",
       data: null,
     };
   }
