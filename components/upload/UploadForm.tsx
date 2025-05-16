@@ -10,6 +10,7 @@ import {
 } from "@/actions/upload-actions";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import LoadingSkeleton from "./LoadingSkeleton";
 
 const schema = z.object({
   file: z
@@ -173,19 +174,22 @@ export default function UploadForm() {
         onSubmit={handleSubmit}
       />
       {isLoading && (
-        <div className="relative">
-          <div
-            className="absolute inset-0 flex items-center"
-            aria-hidden="true"
-          >
-            <div className="w-full border-t border-gray-200 dark:border-gray-800" />
+        <>
+          <div className="relative">
+            <div
+              className="absolute inset-0 flex items-center"
+              aria-hidden="true"
+            >
+              <div className="w-full border-t border-gray-200 dark:border-gray-800" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-background px-3 text-muted-foreground text-sm">
+                Processing
+              </span>
+            </div>
           </div>
-          <div className="relative flex justify-center">
-            <span className="bg-background px-3 text-muted-foreground text-sm">
-              Processing
-            </span>
-          </div>
-        </div>
+          <LoadingSkeleton />
+        </>
       )}
     </div>
   );
