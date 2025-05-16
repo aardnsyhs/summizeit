@@ -66,3 +66,12 @@ export const buttonVariants = {
     damping: 10,
   },
 };
+
+export const listVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { type: "spring", damping: 20, stiffness: 100 },
+  },
+};
