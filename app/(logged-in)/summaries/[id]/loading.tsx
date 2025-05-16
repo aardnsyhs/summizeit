@@ -1,5 +1,6 @@
 import BgGradient from "@/components/common/BgGradient";
 import { Skeleton } from "@/components/ui/skeleton";
+import LoadingSkeleton from "@/components/upload/LoadingSkeleton";
 import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
@@ -11,22 +12,6 @@ function HeaderSkeleton() {
         <Skeleton className="h-5 w-40 rounded-full bg-white/80" />
       </div>
       <Skeleton className="h-12 w-3/4 rounded-full bg-white/80" />
-    </div>
-  );
-}
-
-function ContentSkeleton() {
-  return (
-    <div className="space-y-4">
-      {[...Array(6)].map((_, index) => (
-        <Skeleton
-          key={index}
-          className={cn(
-            "h-4",
-            index % 2 === 0 ? "w-full" : "w-11/12 bg-white/80"
-          )}
-        />
-      ))}
     </div>
   );
 }
@@ -46,7 +31,7 @@ export default function LoadingSummary() {
                   <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-rose-400" />
                 </div>
                 <div className="relative">
-                  <ContentSkeleton />
+                  <LoadingSkeleton />
                 </div>
               </div>
             </div>
