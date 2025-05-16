@@ -100,7 +100,7 @@ export default async function DashboardPage() {
           {summaries.length === 0 ? (
             <EmptySummaryState />
           ) : (
-            <div className="grid grid-cols-1 gao-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 sm:px-0">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 sm:px-0">
               {summaries.map((summary, index) => (
                 <SummaryCard key={index} summary={summary} />
               ))}
