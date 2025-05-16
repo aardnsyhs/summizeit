@@ -44,8 +44,8 @@ export default function UploadForm() {
       );
       setIsLoading(false);
     },
-    onUploadBegin: (fileName: string) => {
-      console.log("upload has begun for", fileName);
+    onUploadBegin: (data) => {
+      console.log("upload has begun for", data);
     },
   });
 

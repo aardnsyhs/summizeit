@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getDbConnection } from "@/lib/db";
 import { formatFileNameAsTitle } from "@/utils/format-utils";
 import { revalidatePath } from "next/cache";
+import { ClientUploadedFileData } from "uploadthing/types";
 
 interface PdfSummaryType {
   userId?: string;
@@ -17,19 +18,15 @@ interface PdfSummaryType {
 }
 
 export async function generatePdfSummary(
-  uploadResponse: [
-    {
-      serverData: {
-        userId: string;
-        file: {
-          url: string;
-          name: string;
-        };
-      };
-    }
-  ]
+  uploadResponse: ClientUploadedFileData<{
+    userId: string;
+    fileUrl: string;
+    fileName: string;
+  }>[]
 ) {
-  if (!uploadResponse) {
+  const first = uploadResponse[0];
+
+  if (!first) {
     return {
       success: false,
       message: "File upload failed",
@@ -37,12 +34,7 @@ export async function generatePdfSummary(
     };
   }
 
-  const {
-    serverData: {
-      userId,
-      file: { url: pdfUrl, name: fileName },
-    },
-  } = uploadResponse[0];
+  const { fileUrl: pdfUrl, fileName } = first.serverData;
 
   if (!pdfUrl) {
     return {
