@@ -4,43 +4,39 @@ import { SummaryViewer } from "../summaries/SummaryViewer";
 
 const DEMO_SUMMARY = `
 # Quick Overview
-•🎯Comprehensive Next.js 15 course covering everything from fundamentals to advanced deployment strategies.
+•📝 This document provides a concise overview of the main ideas, key insights, and actionable takeaways to help readers quickly grasp the content.
 
 # Document Details
-•📑Type: Technical Course
-•👥For: Web Developers & React Engineers
+•📄 Type: Informational Summary
+•👥 Intended For: Professionals, Teams, and Decision Makers
 
 # Key Highlights
-•🚀Complete guide to Next.js 15's App Router
-•⭐Server Components & Server Actions deep dive
-•💫Full-stack application development with Next.js
+•✅ Core concepts are broken down into digestible points
+•🚀 Practical applications and examples included
+•📌 Important facts and data emphasized for clarity
 
 # Why It Matters
-•💡Next.js is becoming the industry standard for React applications, offering superior performance, SEO, and developer experience. This course provides the essential knowledge needed to build modern web applications.
+•💡 Helps you understand essential information without reading the full document
+•⏱️ Saves time and improves decision-making with summarized insights
+•📊 Makes complex ideas easier to communicate and share
 
-# 📄 Main Points
-•🎨Modern application architecture with App Router
-•💻Server and Client Components best practices
-•🔄Data fetching patterns and caching strategies
-•🛠️Authentication and API route implementation
-•📱Responsive design and component libraries
+# Main Takeaways
+•🧠 Focused understanding of key sections
+•🔍 Clear distinctions between major themes
+•📘 Summary encourages further exploration if needed
 
 # Pro Tips
-•⭐Always consider server components as your default choice
-•💎Implement route groups for better code organization
-•🌟Use loading.tsx and error.tsx for better UX
+•⭐ Use this summary as a reference before meetings or discussions
+•📌 Highlight specific sections that align with your goals
+•📤 Share the summary to improve team alignment
 
 # Key Terms to Know
-•📚Server Components: React components that render on the server for better performance
-•🔍Route Groups: Next.js feature for organizing routes without affecting URL structure
-•🎯Streaming: Technique for progressively rendering UI components
-•🔄Suspense: React feature for handling loading states
+•📚 Executive Summary – A brief section that outlines the main points
+•🗂️ Key Findings – Most impactful or surprising insights from the document
+•📎 Action Items – Next steps or recommended actions based on the content
 
-# Bottom Line
-•💫Master Next.js 15 to build fast, scalable, and SEO-friendly web applications with the latest React features and best practices.
-
-# 🔥 Final Thoughts
-This course transforms developers into Next.js experts, enabling them to build production-ready applications with confidence and efficiency.
+# Final Thoughts
+•✨ A well-crafted summary helps turn dense content into clarity—empowering better decisions and smarter communication.
 `;
 
 export default function DemoSection() {
