@@ -6,11 +6,13 @@ import { useUploadThing } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import {
   generatePdfSummary,
+  generatePdfText,
   storePdfSummaryAction,
 } from "@/actions/upload-actions";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingSkeleton from "./LoadingSkeleton";
+import { formatFileNameAsTitle } from "@/utils/format-utils";
 
 const schema = z.object({
   file: z
@@ -81,11 +83,11 @@ export default function UploadForm() {
         </div>
       );
 
-      const res = await startUpload([file]);
-      if (!res) {
+      const uploadResponse = await startUpload([file]);
+      if (!uploadResponse) {
         toast.error(
           <div>
-            <p className="font-semibold">❌ Something went wrong</p>
+            <p className="font-bold">Something went wrong</p>
             <p className="text-sm text-muted-foreground">
               Please use a different file
             </p>
@@ -103,49 +105,69 @@ export default function UploadForm() {
           </p>
         </div>
       );
+      const uploadFileUrl = uploadResponse[0].serverData.fileUrl;
 
-      const result = await generatePdfSummary(res);
-      const { data = null } = result || {};
+      let storeResult: any;
+      toast(
+        <div>
+          <p className="font-semibold">✅ Saving PDF...</p>
+          <p className="text-sm text-muted-foreground">
+            Hang tight! We are saving your summary! ✨
+          </p>
+        </div>
+      );
 
-      if (data) {
-        let storeResult: any;
-        toast(
+      const formattedFileName = formatFileNameAsTitle(file.name);
+
+      const result = await generatePdfText({
+        fileUrl: uploadFileUrl,
+      });
+
+      toast(
+        <div>
+          <p className="font-semibold">📄 Generating PDF Summary</p>
+          <p className="text-sm text-muted-foreground">
+            Hang tight! Our AI is reading through your document!
+          </p>
+        </div>
+      );
+
+      const summaryResult = await generatePdfSummary({
+        pdfText: result?.data?.pdfText ?? "",
+        fileName: formattedFileName,
+      });
+
+      toast(
+        <div>
+          <p className="font-semibold">📄 Saving PDF Summary</p>
+          <p className="text-sm text-muted-foreground">
+            Hang tight! Our AI is reading through your document!
+          </p>
+        </div>
+      );
+
+      const { data = null, message = null } = summaryResult || {};
+
+      if (data?.summary) {
+        storeResult = await storePdfSummaryAction({
+          summary: Array.isArray(data.summary)
+            ? data.summary.join(" ")
+            : String(data.summary),
+          fileUrl: uploadFileUrl,
+          title: formattedFileName,
+          fileName: file.name,
+        });
+        toast.success(
           <div>
-            <p className="font-semibold">✅ Saving PDF...</p>
+            <p className="font-semibold">✨ Summary generated!</p>
             <p className="text-sm text-muted-foreground">
-              Hang tight! We are saving your summary! ✨
+              Your PDF summary has been successfully summarized and saved!
             </p>
           </div>
         );
-        if (data.summary) {
-          storeResult = await storePdfSummaryAction({
-            summary: Array.isArray(data.summary)
-              ? data.summary.join(" ")
-              : String(data.summary),
-            fileUrl: res[0].ufsUrl,
-            title: data.title,
-            fileName: file.name,
-          });
-          toast.success(
-            <div>
-              <p className="font-semibold">✨ Summary generated!</p>
-              <p className="text-sm text-muted-foreground">
-                Your PDF summary has been successfully summarized and saved!
-              </p>
-            </div>
-          );
 
-          formRef.current?.reset();
-          if (storeResult?.data?.id) {
-            router.push(`/summaries/${storeResult.data.id}`);
-          } else {
-            console.error("storeResult.data.id tidak ditemukan:", storeResult);
-            toast.error("❌ Gagal menyimpan summary ke database.");
-          }
-        }
-      } else {
-        toast.error("❌ Failed to save PDF summary.");
         formRef.current?.reset();
+        router.push(`/summaries/${storeResult.data.id}`);
       }
     } catch (err) {
       console.error("Error occurred", err);
