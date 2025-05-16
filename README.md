@@ -27,6 +27,7 @@
 | **AI APIs**           | Gemini & Groq                    |
 | **TypeScript**        | Primary development language     |
 | **UploadThing**       | Upload File                      |
+| **Framer Motion**     | Smooth Animation                 |
 
 ---
 
