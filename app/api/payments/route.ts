@@ -1,51 +1,29 @@
-import {
-  handleCheckoutSessionCompleted,
-  handleSubscriptionDeleted,
-} from "@/lib/payments";
-import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { createCheckoutSession } from "@/lib/payments/checkout-sessions";
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
-export const POST = async (req: NextRequest) => {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-  const payload = await req.text();
-  const sig = req.headers.get("stripe-signature");
-  let event;
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
+export async function POST(request: Request) {
   try {
-    event = stripe.webhooks.constructEvent(payload, sig!, endpointSecret);
+    const { userId, sessionClaims } = await auth();
 
-    switch (event.type) {
-      case "checkout.session.completed":
-        console.log("Checkout session completed");
-        const sessionId = event.data.object.id;
-        const session = await stripe.checkout.sessions.retrieve(sessionId, {
-          expand: ["line_items"],
-        });
-        await handleCheckoutSessionCompleted({ session, stripe });
-        break;
-      case "customer.subscription.deleted":
-        console.log("Checkout session deleted");
-        const subscription = event.data.object;
-        const subscriptionId = event.data.object.id;
-
-        await handleSubscriptionDeleted({ subscriptionId, stripe });
-
-        console.log(subscription);
-        break;
-      default:
-        console.log(`Unhandled event type ${event.type}`);
-        break;
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-  } catch (err) {
-    console.error(err);
+
+    const { priceId, userEmail } = await request.json();
+
+    const session = await createCheckoutSession({
+      priceId,
+      userId,
+      userEmail: userEmail || sessionClaims?.email || "",
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error("Checkout error:", error);
     return NextResponse.json(
-      { error: "Failed to trigger webhook", err },
-      { status: 400 }
+      { error: "Failed to create checkout session" },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json({
-    status: "success",
-  });
-};
+}

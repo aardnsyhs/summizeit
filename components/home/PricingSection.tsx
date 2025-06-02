@@ -1,10 +1,10 @@
 "use client";
 
 import { cn, formatCurrency } from "@/lib/utils";
-import { ArrowRight, CheckIcon } from "lucide-react";
+import { ArrowRight, CheckIcon, Loader2 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { Button } from "../ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MotionDiv, MotionSection } from "../common/MotionWrapper";
 import {
   containerVariants,
@@ -18,7 +18,6 @@ type PricingPlan = {
   price: number;
   description: string;
   items: string[];
-  paymentLink: string;
   priceId: string;
 };
 
@@ -27,37 +26,63 @@ type PricingCardProps = {
   isPro: boolean;
 };
 
-const usePaymentRedirect = (paymentLink: string) => {
-  const { isSignedIn, isLoaded } = useUser();
+const usePaymentRedirect = (priceId: string) => {
+  const { isSignedIn, isLoaded, user } = useUser();
   const { redirectToSignIn } = useClerk();
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const redirectUrl = sessionStorage.getItem("postLoginRedirect");
-      if (redirectUrl) {
-        sessionStorage.removeItem("postLoginRedirect");
-        window.location.href = redirectUrl;
-      }
-    }
-  }, [isLoaded, isSignedIn]);
-
   const handlePayment = async () => {
+    if (!isLoaded) return;
+
     if (!isSignedIn) {
-      sessionStorage.setItem("postLoginRedirect", paymentLink);
+      sessionStorage.setItem("postLoginRedirect", window.location.href);
       await redirectToSignIn({
         afterSignInUrl: window.location.href,
         afterSignUpUrl: window.location.href,
       });
       return;
     }
-    window.location.href = paymentLink;
+
+    try {
+      const response = await fetch("/api/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          priceId,
+          userId: user.id,
+          userEmail: user.primaryEmailAddress?.emailAddress,
+        }),
+      });
+
+      const { url } = await response.json();
+
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Failed to initiate checkout. Please try again.");
+    }
   };
 
   return { handlePayment };
 };
 
 const PricingCard = ({ plan, isPro }: PricingCardProps) => {
-  const { handlePayment } = usePaymentRedirect(plan.paymentLink);
+  const { handlePayment } = usePaymentRedirect(plan.priceId);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = async () => {
+    setIsLoading(true);
+    try {
+      await handlePayment();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <MotionDiv
@@ -112,7 +137,8 @@ const PricingCard = ({ plan, isPro }: PricingCardProps) => {
           className="space-y-2 flex justify-center w-full"
         >
           <Button
-            onClick={handlePayment}
+            onClick={handleClick}
+            disabled={isLoading}
             className={cn(
               "w-full rounded-full flex items-center justify-center gap-2",
               "bg-gradient-to-r from-rose-800 to-rose-500 hover:from-rose-500 hover:to-rose-800",
@@ -123,7 +149,13 @@ const PricingCard = ({ plan, isPro }: PricingCardProps) => {
             )}
             aria-label={`Buy ${plan.name} plan`}
           >
-            Buy Now <ArrowRight size={18} />
+            {isLoading ? (
+              <Loader2 className="animate-spin h-5 w-5" />
+            ) : (
+              <>
+                Buy Now <ArrowRight size={18} />
+              </>
+            )}
           </Button>
         </MotionDiv>
       </div>
