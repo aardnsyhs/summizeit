@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { verifyPayment } from "@/lib/payments/payment-verification";
