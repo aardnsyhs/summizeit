@@ -1,5 +1,3 @@
-import { isDev } from "./helpers";
-
 export const pricingPlans = [
   {
     name: "Basic",
