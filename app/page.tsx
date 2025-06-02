@@ -4,6 +4,7 @@ import CTASection from "@/components/home/CTASection";
 import DemoSection from "@/components/home/DemoSection";
 import HeroSection from "@/components/home/HeroSection";
 import PricingSection from "@/components/home/PricingSection";
+import { pricingPlans } from "@/utils/constants";
 
 export default function Home() {
   return (
@@ -13,7 +14,7 @@ export default function Home() {
         <HeroSection />
         <DemoSection />
         <HowItWorksSection />
-        <PricingSection />
+        <PricingSection plans={pricingPlans} />
         <CTASection />
       </div>
     </div>
