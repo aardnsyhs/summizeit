@@ -1,32 +1,64 @@
+"use client";
+
 import { cn, formatCurrency } from "@/lib/utils";
+import { ArrowRight, CheckIcon } from "lucide-react";
+import { useUser, useClerk } from "@clerk/nextjs";
+import { Button } from "../ui/button";
+import { useEffect } from "react";
+import { MotionDiv, MotionSection } from "../common/MotionWrapper";
 import {
   containerVariants,
   itemVariants,
   listVariants,
-  pricingPlans,
 } from "@/utils/constants";
-import { ArrowRight, CheckIcon } from "lucide-react";
-import Link from "next/link";
-import { MotionDiv, MotionSection } from "../common/MotionWrapper";
 
-type PriceType = {
+type PricingPlan = {
+  id: string;
   name: string;
   price: number;
   description: string;
   items: string[];
-  id: string;
   paymentLink: string;
   priceId: string;
 };
 
-const PricingCard = ({
-  name,
-  price,
-  description,
-  items,
-  id,
-  paymentLink,
-}: PriceType) => {
+type PricingCardProps = {
+  plan: PricingPlan;
+  isPro: boolean;
+};
+
+const usePaymentRedirect = (paymentLink: string) => {
+  const { isSignedIn, isLoaded } = useUser();
+  const { redirectToSignIn } = useClerk();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      const redirectUrl = sessionStorage.getItem("postLoginRedirect");
+      if (redirectUrl) {
+        sessionStorage.removeItem("postLoginRedirect");
+        window.location.href = redirectUrl;
+      }
+    }
+  }, [isLoaded, isSignedIn]);
+
+  const handlePayment = async () => {
+    if (!isSignedIn) {
+      sessionStorage.setItem("postLoginRedirect", paymentLink);
+      await redirectToSignIn({
+        afterSignInUrl: window.location.href,
+        afterSignUpUrl: window.location.href,
+      });
+      return;
+    }
+    window.location.href = paymentLink;
+  };
+
+  return { handlePayment };
+};
+
+const PricingCard = ({ plan, isPro }: PricingCardProps) => {
+  const { handlePayment } = usePaymentRedirect(plan.paymentLink);
+
   return (
     <MotionDiv
       variants={listVariants}
@@ -36,7 +68,7 @@ const PricingCard = ({
       <div
         className={cn(
           "relative flex flex-col h-full gap-4 lg:gap-8 z-10 p-8 border-[1px] border-gray-500/20 rounded-2xl",
-          id === "pro" && "border-rose-500 gap-5 border-2"
+          isPro && "border-rose-500 gap-5 border-2"
         )}
       >
         <MotionDiv
@@ -44,52 +76,62 @@ const PricingCard = ({
           className="flex justify-between items-center gap-4"
         >
           <div>
-            <p className="text-lg lg:text-xl font-bold capitalize">{name}</p>
-            <p className="text-base-content/80 mt-2">{description}</p>
+            <h3 className="text-lg lg:text-xl font-bold capitalize">
+              {plan.name}
+            </h3>
+            <p className="text-base-content/80 mt-2">{plan.description}</p>
           </div>
         </MotionDiv>
         <div className="flex gap-2">
           <p className="text-5xl tracking-tight font-extrabold">
-            {formatCurrency(price)}
+            {formatCurrency(plan.price)}
           </p>
           <div className="flex flex-col justify-end mb-[4px]">
-            <p className="text-xs uppercase font-semibold">rupiah</p>
-            <p className="text-xs">/month</p>
+            <span className="text-xs uppercase font-semibold">rupiah</span>
+            <span className="text-xs">/month</span>
           </div>
         </div>
         <MotionDiv
           variants={listVariants}
           className="space-y-2.5 leading-relaxed text-base flex-1"
         >
-          {items.map((item, idx) => (
-            <li key={idx} className="flex items-center gap-2">
-              <CheckIcon size={18} />
-              <span>{item}</span>
-            </li>
-          ))}
+          <ul>
+            {plan.items.map((item, idx) => (
+              <li
+                key={`${plan.id}-feature-${idx}`}
+                className="flex items-center gap-2"
+              >
+                <CheckIcon size={18} className="text-rose-500" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </MotionDiv>
         <MotionDiv
           variants={listVariants}
           className="space-y-2 flex justify-center w-full"
         >
-          <Link
-            href={paymentLink}
+          <Button
+            onClick={handlePayment}
             className={cn(
-              "w-full rounded-full flex items-center justify-center gap-2 bg-linear-to-r from-rose-800 to-rose-500 hover:from-rose-500 hover:to-rose-800 text-white border-2 py-2",
-              id === "pro"
+              "w-full rounded-full flex items-center justify-center gap-2",
+              "bg-gradient-to-r from-rose-800 to-rose-500 hover:from-rose-500 hover:to-rose-800",
+              "text-white border-2 py-2",
+              isPro
                 ? "border-rose-900"
                 : "border-rose-100 from-rose-400 to-rose-500"
             )}
+            aria-label={`Buy ${plan.name} plan`}
           >
             Buy Now <ArrowRight size={18} />
-          </Link>
+          </Button>
         </MotionDiv>
       </div>
     </MotionDiv>
   );
 };
 
-export default function PricingSection() {
+export default function PricingSection({ plans }: { plans: PricingPlan[] }) {
   return (
     <MotionSection
       variants={containerVariants}
@@ -109,8 +151,8 @@ export default function PricingSection() {
           </h2>
         </MotionDiv>
         <div className="relative flex justify-center flex-col lg:flex-row items-center lg:items-stretch gap-8">
-          {pricingPlans.map((plan) => (
-            <PricingCard key={plan.id} {...plan} />
+          {plans.map((plan) => (
+            <PricingCard key={plan.id} plan={plan} isPro={plan.id === "pro"} />
           ))}
         </div>
       </div>
