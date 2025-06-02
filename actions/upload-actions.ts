@@ -47,8 +47,10 @@ export async function generatePdfSummary(
   let summary;
   try {
     const pdfText = await fetchAndExtractPdfText(pdfUrl);
+    console.log(pdfText);
     try {
       summary = await generateSummaryFromGroq(pdfText);
+      console.log({ summary });
     } catch (err) {
       console.error(err);
       //call gemini
