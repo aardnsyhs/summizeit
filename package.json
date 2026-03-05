@@ -13,7 +13,7 @@
     "@google/genai": "^0.13.0",
     "@langchain/community": "^0.3.42",
     "@langchain/core": "^0.3.55",
-    "@langchain/groq": "^0.2.2",
+    "@langchain/groq": "^1.0.0",
     "@neondatabase/serverless": "^1.0.0",
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-slot": "^1.2.2",
